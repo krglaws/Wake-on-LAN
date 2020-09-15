@@ -5,7 +5,7 @@ Wake on LAN utility - Use this to wake up your sleeping PC with WoL enabled.
 
 Compile with:
 ```bash
-cc wol.c
+cc wol.c -o wol
 ```
 
 Run with:
