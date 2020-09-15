@@ -80,42 +80,25 @@ int main(int argc, char** argv) {
   }
 
   /* Prepare magic packet */
-  for (int i = 0; i < 6; i++) magic[i] = 0xFF;
-
-  uint8_t byte = strtol(mac, &mac, 16);
-  mac++; //skip ':'
-  for (int i = 6; i < PACKETSIZE - 5; i += 6) magic[i] = byte;
-
-  byte = strtol(mac, &mac, 16);
-  mac++; //skip ':'
-  for (int i = 7; i < PACKETSIZE - 4; i += 6) magic[i] = byte;
-  
-  byte = strtol(mac, &mac, 16);
-  mac++; //skip ':'
-  for (int i = 8; i < PACKETSIZE - 3; i += 6) magic[i] = byte;
- 
-  byte = strtol(mac, &mac, 16);
-  mac++; //skip ':'
-  for (int i = 9; i < PACKETSIZE - 2; i += 6) magic[i] = byte;
-
-  byte = strtol(mac, &mac, 16);
-  mac++; //skip ':'
-  for (int i = 10; i < PACKETSIZE - 1; i += 6) magic[i] = byte;
-
-  byte = strtol(mac, &mac, 16);
-  mac++; //skip ':'
-  for (int i = 11; i < PACKETSIZE; i += 6) magic[i] = byte;
+  for (int i = 0; i < 6; i++) {
+    magic[i] = 0xFF;
+    uint8_t byte = strtol(mac, &mac, 16);
+    for (int j = i + 6; j < PACKETSIZE - (5 - i); j += 6) {
+      magic[j] = byte;
+    }
+    mac++;
+  }
  
   /* Create socket */
-  int sock;
-  if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+  int sockfd;
+  if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     perror(argv[0]);
     exit(EXIT_FAILURE);
   }
 
   /* Set broadcast permissions */
   int broadperm = 1; 
-  if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (void *) &broadperm,
+  if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (void *) &broadperm,
       sizeof(broadperm)) < 0) {
     perror(argv[0]);
     exit(EXIT_FAILURE);
@@ -133,7 +116,7 @@ int main(int argc, char** argv) {
   }
 
   /* Send it */
-  if (sendto(sock, (const char *)magic, PACKETSIZE, MSG_CONFIRM,
+  if (sendto(sockfd, (const char *)magic, PACKETSIZE, MSG_CONFIRM,
          (const struct sockaddr *) &destaddr, sizeof(destaddr)) < 0)
   {
     perror(argv[0]);
@@ -142,7 +125,7 @@ int main(int argc, char** argv) {
 
   printf("Magic packet sent.\n"); 
 
-  close(sock); 
+  close(sockfd); 
   return 0;
 }
 
